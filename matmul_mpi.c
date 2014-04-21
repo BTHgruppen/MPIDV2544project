@@ -63,8 +63,7 @@ static void init_matrix(void)
 				b2[x][y - SIZE / 2] = 1.0;
 			}
 #endif
-
-        }
+		}
 	}
 }
 
