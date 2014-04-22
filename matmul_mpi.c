@@ -26,6 +26,8 @@ static double a2[SIZE / 2][SIZE];
 static double b1[SIZE][SIZE / 2];
 static double b2[SIZE][SIZE / 2];
 
+static double cHalf[SIZE / 2][SIZE]
+
 // Initialize a matrix of size (SIZE * SIZE).
 // For simplicity, all values will be set to 1.0.
 static void init_matrix(void)
@@ -114,6 +116,49 @@ int main(int argc, char **argv)
 		else if (nproc == 2)
 		{
 			// Two blocks on master, two blocks on node
+
+			// Block 1 (1,1)
+			for (i = 0; i < HALF_SIZE; i++) // Row
+			{
+				for (j = 0; j < HALF_SIZE / 2; j++) // Element in row
+				{
+					c[i][j] = 0.0f;
+					for (k = 0; k < HALF_SIZE / 2; k++)
+					{
+						c[i][j] = c[i][j] + a1[i][k] * b1[k][j];
+					}
+				}
+			}
+
+			// Block 2 (1,2)
+			for (i = 0; i < HALF_SIZE / 2; i++)
+			{
+				for (j = 0; j < HALF_SIZE / 2; j++)
+				{
+					c[i][j] = 0.0f;
+					for (k = 0; k < HALF_SIZE / 2; k++)
+					{
+						c[i][j + HALF_SIZE] = c[i][j + HALF_SIZE] + a1[i][k] * b2[k][j];
+					}
+				}
+			}
+
+			// Send matrix blocks to the node
+			MPI_Send(&a2, HALF_SIZE * HALF_SIZE, MPI_DOUBLE, 1, FROM_MASTER, MPI_COMM_WORLD);
+			MPI_Send(&b1, HALF_SIZE * HALF_SIZE, MPI_DOUBLE, 1, FROM_MASTER, MPI_COMM_WORLD);
+			MPI_Send(&b2, HALF_SIZE * HALF_SIZE, MPI_DOUBLE, 1, FROM_MASTER, MPI_COMM_WORLD);
+			
+
+			// Receive result
+			MPI_Recv(&cHalf, HALF_SIZE * HALF_SIZE, MPI_DOUBLE, 1, FROM_WORKER, MPI_COMM_WORLD, &status);
+			
+			for (i = 0; i < HALF_SIZE; i++)
+			{
+				for (j = 0; j < SIZE; j++)
+				{
+					c[i + HALF_SIZE][j] = cHalf[i][j];
+				}
+			}
 		}
 		else
 		{
