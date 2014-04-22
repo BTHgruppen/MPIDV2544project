@@ -112,6 +112,7 @@ int main(int argc, char **argv)
 		if (nproc == 4)
 		{
 			// One block on master and one on each node
+			// TODO: Write code for nproc == 4
 		}
 		else if (nproc == 2)
 		{
@@ -144,13 +145,13 @@ int main(int argc, char **argv)
 			}
 
 			// Send matrix blocks to the node
-			MPI_Send(&a2, HALF_SIZE * HALF_SIZE, MPI_DOUBLE, 1, FROM_MASTER, MPI_COMM_WORLD);
-			MPI_Send(&b1, HALF_SIZE * HALF_SIZE, MPI_DOUBLE, 1, FROM_MASTER, MPI_COMM_WORLD);
-			MPI_Send(&b2, HALF_SIZE * HALF_SIZE, MPI_DOUBLE, 1, FROM_MASTER, MPI_COMM_WORLD);
+			MPI_Send(&a2, HALF_SIZE * SIZE, MPI_DOUBLE, 1, FROM_MASTER, MPI_COMM_WORLD);
+			MPI_Send(&b1, HALF_SIZE * SIZE, MPI_DOUBLE, 1, FROM_MASTER, MPI_COMM_WORLD);
+			MPI_Send(&b2, HALF_SIZE * SIZE, MPI_DOUBLE, 1, FROM_MASTER, MPI_COMM_WORLD);
 			
 
 			// Receive result
-			MPI_Recv(&cHalf, HALF_SIZE * HALF_SIZE, MPI_DOUBLE, 1, FROM_WORKER, MPI_COMM_WORLD, &status);
+			MPI_Recv(&cHalf, HALF_SIZE * SIZE, MPI_DOUBLE, 1, FROM_WORKER, MPI_COMM_WORLD, &status);
 			
 			for (i = 0; i < HALF_SIZE; i++)
 			{
@@ -183,7 +184,7 @@ int main(int argc, char **argv)
 			{
 				for (j = 0; j < HALF_SIZE / 2; j++)
 				{
-					c[i][j] = 0.0f;
+					c[i][j + HALF_SIZE] = 0.0f;
 					for (k = 0; k < HALF_SIZE / 2; k++)
 					{
 						c[i][j + HALF_SIZE] = c[i][j + HALF_SIZE] + a1[i][k] * b2[k][j];
@@ -196,7 +197,7 @@ int main(int argc, char **argv)
 			{
 				for (j = 0; j < HALF_SIZE / 2; j++)
 				{
-					c[i][j] = 0.0f;
+					c[i + HALF_SIZE][j] = 0.0f;
 					for (k = 0; k < HALF_SIZE / 2; k++)
 					{
 						c[i + HALF_SIZE][j] = c[i + HALF_SIZE][j] + a2[i][k] * b1[k][j];
@@ -209,14 +210,24 @@ int main(int argc, char **argv)
 			{
 				for (j = 0; j < HALF_SIZE / 2; j++)
 				{
-					c[i][j] = 0.0f;
+					c[i + HALF_SIZE][j + HALF_SIZE] = 0.0f;
 					for (k = 0; k < HALF_SIZE / 2; k++)
 					{
-						c[i][j + HALF_SIZE] = c[i][j + HALF_SIZE] + a2[i][k] * b2[k][j];
+						c[i + HALF_SIZE][j + HALF_SIZE] = c[i + HALF_SIZE][j + HALF_SIZE] + a2[i][k] * b2[k][j];
 					}
 				}
 			}
 		}
+
+		end_time = MPI_Wtime();
+
+		if (DEBUG)
+		{
+			print_matrix();
+		}
+
+		int time_taken = (end_time - start_time);
+		printf("Execution time on %2d nodes: %f\n", nproc, time_taken);
 
 		/*
 		// Send part of matrix a and the whole matrix b to workers.
@@ -265,22 +276,53 @@ int main(int argc, char **argv)
 				printf("   Recived %d rows from task %d, offset = %d\n", rows, src, offset);
 			}
 		}
-
-		end_time = MPI_Wtime();
-
-		if (DEBUG)
-		{
-			print_matrix();
-		}
-
-		int time_taken = (end_time - start_time);
-		printf("Execution time on %2d nodes: %f\n", nproc, time_taken);
-		*/
+		*/	
     } 
 	
 	// Worker tasks.
-	else if(myrank < PROCESSORS)
+	else if(myrank < nprocs)
 	{
+		if (nprocs == 2)
+		{
+			MPI_Recv(&a2, HALF_SIZE * SIZE, MPI_DOUBLE, 0, FROM_MASTER, MPI_COMM_WORLD, &status);
+			MPI_Recv(&b1, HALF_SIZE * SIZE, MPI_DOUBLE, 0, FROM_MASTER, MPI_COMM_WORLD, &status);
+			MPI_Recv(&b2, HALF_SIZE * SIZE, MPI_DOUBLE, 0, FROM_MASTER, MPI_COMM_WORLD, &status);
+
+			// Block 3 (2,1)
+			for (i = 0; i < HALF_SIZE / 2; i++)
+			{
+				for (j = 0; j < HALF_SIZE / 2; j++)
+				{
+					c[i][j] = 0.0f;
+					for (k = 0; k < HALF_SIZE / 2; k++)
+					{
+						c[i][j] = c[i][j] + a2[i][k] * b1[k][j];
+					}
+				}
+			}
+
+			// Block 4 (2,2)
+			for (i = 0; i < HALF_SIZE / 2; i++)
+			{
+				for (j = 0; j < HALF_SIZE / 2; j++)
+				{
+					c[i][j + HALF_SIZE] = 0.0f;
+					for (k = 0; k < HALF_SIZE / 2; k++)
+					{
+						c[i][j + HALF_SIZE] = c[i][j + HALF_SIZE] + a2[i][k] * b2[k][j];
+					}
+				}
+			}
+
+			MPI_Send(&c, HALF_SIZE * SIZE, MPI_DOUBLE, 0, FROM_WORKER, MPI_COMM_WORLD); // Send result back
+
+		}
+		else if (nprocs == 4)
+		{
+			// TODO: Write code for nprocs == 4
+		}
+
+		/*
 		// Receive data from master node.
 		mtype = FROM_MASTER;
 		MPI_Recv(&offset, 1, MPI_INT, 0, mtype, MPI_COMM_WORLD, &status);
@@ -317,6 +359,7 @@ int main(int argc, char **argv)
 		MPI_Send(&offset, 1, MPI_INT, 0, mtype, MPI_COMM_WORLD);
 		MPI_Send(&rows, 1, MPI_INT, 0, mtype, MPI_COMM_WORLD);
 		MPI_Send(&c[offset][0], rows*SIZE, MPI_DOUBLE, 0, mtype, MPI_COMM_WORLD);
+		*/
     }
 
     MPI_Finalize();
