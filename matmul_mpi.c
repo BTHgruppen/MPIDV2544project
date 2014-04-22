@@ -82,6 +82,7 @@ int main(int argc, char **argv)
     int dest, src, offset;
     double start_time, end_time;
     int i, j, k;
+	int HALF_SIZE = SIZE / 2;
 
     MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD, &availableProcs);
@@ -120,14 +121,53 @@ int main(int argc, char **argv)
 			// Could be done as one block, but separating blocks to enable abstraction to nproc 2 and 4
 
 			// Block 1
-			for (i = 0; i < SIZE / 2; i++) // Row
+			for (i = 0; i < HALF_SIZE; i++) // Row
 			{
-				for (j = 0; j < SIZE / 2; j++) // Element in row
+				for (j = 0; j < HALF_SIZE / 2; j++) // Element in row
 				{
 					c[i][j] = 0.0f;
-					for (k = 0; k < SIZE / 2; k++)
+					for (k = 0; k < HALF_SIZE / 2; k++)
 					{
 						c[i][j] = c[i][j] + a1[i][k] * b1[k][j];
+					}
+				}
+			}
+
+			// Block 2 (1,2)
+			for (i = 0; i < HALF_SIZE / 2; i++)
+			{
+				for (j = 0; j < HALF_SIZE / 2; j++)
+				{
+					c[i][j] = 0.0f;
+					for (k = 0; k < HALF_SIZE / 2; k++)
+					{
+						c[i][j + HALF_SIZE] = c[i][j + HALF_SIZE] + a1[i][k] * b2[k][j];
+					}
+				}
+			}
+			
+			// Block 3 (2,1)
+			for (i = 0; i < HALF_SIZE / 2; i++)
+			{
+				for (j = 0; j < HALF_SIZE / 2; j++)
+				{
+					c[i][j] = 0.0f;
+					for (k = 0; k < HALF_SIZE / 2; k++)
+					{
+						c[i + HALF_SIZE][j] = c[i + HALF_SIZE][j] + a2[i][k] * b1[k][j];
+					}
+				}
+			}	
+			
+			// Block 4 (2,2)
+			for (i = 0; i < HALF_SIZE / 2; i++)
+			{
+				for (j = 0; j < HALF_SIZE / 2; j++)
+				{
+					c[i][j] = 0.0f;
+					for (k = 0; k < HALF_SIZE / 2; k++)
+					{
+						c[i][j + HALF_SIZE] = c[i][j + HALF_SIZE] + a2[i][k] * b2[k][j];
 					}
 				}
 			}
