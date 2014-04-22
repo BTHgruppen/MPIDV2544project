@@ -76,7 +76,7 @@ static void print_matrix(void)
 
 int main(int argc, char **argv)
 {
-    int myrank, nproc;
+    int myrank, availableProcs, nproc;
     int rows; /* amount of work per node (rows per worker) */
     int mtype; /* message type: send/recv between master and workers */
     int dest, src, offset;
@@ -84,23 +84,41 @@ int main(int argc, char **argv)
     int i, j, k;
 
     MPI_Init(&argc, &argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &nproc);
+	MPI_Comm_size(MPI_COMM_WORLD, &availableProcs);
     MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
+
+	if (availableProcs > MAX_PROCESSORS)
+	{
+		nproc = MAX_PROCESSORS;
+	}
+	else
+	{
+		nproc = availableProcs;
+	}
 
 	// Masters tasks.
     if (myrank == 0) 
 	{
 		// Initialization.
-		printf("SIZE = %d, number of nodes = %d\n", SIZE, nproc);
-		if (nproc > MAX_PROCESSORS)
-		{
-			nproc = MAX_PROCESSORS;
-		}
+		printf("SIZE = %d, number of nodes = %d\n", SIZE, availableProcs);
 		printf("%d node(s) will be used.", nproc);
 
 		init_matrix();
 		start_time = MPI_Wtime();
 		
+		if (nproc == 4)
+		{
+			// One block on master and one on each node
+		}
+		else if (nproc == 2)
+		{
+			// Two blocks on master, two blocks on node
+		}
+		else
+		{
+			// All blocks on master
+		}
+
 		// Send part of matrix a and the whole matrix b to workers.
 		rows = SIZE / nproc;
 		mtype = FROM_MASTER;
