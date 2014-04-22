@@ -11,7 +11,7 @@
 #define FROM_WORKER 2
 #define DEBUG 0	
 
-#define PROCESSORS 1;
+#define MAX_PROCESSORS 1;
 
 MPI_Status status;
 
@@ -92,6 +92,12 @@ int main(int argc, char **argv)
 	{
 		// Initialization.
 		printf("SIZE = %d, number of nodes = %d\n", SIZE, nproc);
+		if (nproc > MAX_PROCESSORS)
+		{
+			nproc = MAX_PROCESSORS;
+		}
+		printf("%d node(s) will be used.", nproc);
+
 		init_matrix();
 		start_time = MPI_Wtime();
 		
