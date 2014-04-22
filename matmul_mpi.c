@@ -120,7 +120,7 @@ int main(int argc, char **argv)
 			// All blocks on master
 			// Could be done as one block, but separating blocks to enable abstraction to nproc 2 and 4
 
-			// Block 1
+			// Block 1 (1,1)
 			for (i = 0; i < HALF_SIZE; i++) // Row
 			{
 				for (j = 0; j < HALF_SIZE / 2; j++) // Element in row
@@ -173,6 +173,7 @@ int main(int argc, char **argv)
 			}
 		}
 
+		/*
 		// Send part of matrix a and the whole matrix b to workers.
 		rows = SIZE / nproc;
 		mtype = FROM_MASTER;
@@ -229,6 +230,7 @@ int main(int argc, char **argv)
 
 		int time_taken = (end_time - start_time);
 		printf("Execution time on %2d nodes: %f\n", nproc, time_taken);
+		*/
     } 
 	
 	// Worker tasks.
