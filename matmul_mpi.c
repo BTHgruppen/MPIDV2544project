@@ -117,6 +117,20 @@ int main(int argc, char **argv)
 		else
 		{
 			// All blocks on master
+			// Could be done as one block, but separating blocks to enable abstraction to nproc 2 and 4
+
+			// Block 1
+			for (i = 0; i < SIZE / 2; i++) // Row
+			{
+				for (j = 0; j < SIZE / 2; j++) // Element in row
+				{
+					c[i][j] = 0.0f;
+					for (k = 0; k < SIZE / 2; k++)
+					{
+						c[i][j] = c[i][j] + a1[i][k] * b1[k][j];
+					}
+				}
+			}
 		}
 
 		// Send part of matrix a and the whole matrix b to workers.
