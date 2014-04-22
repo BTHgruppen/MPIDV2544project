@@ -11,9 +11,6 @@
 #define FROM_WORKER 2
 #define DEBUG 0	
 
-// Define BLOCKED_MULT to use blocked matrix multiplication.
-// Otherwise, row-wise will be used.
-#define BLOCKED_MULT
 #define PROCESSORS 1;
 
 MPI_Status status;
@@ -23,13 +20,11 @@ static double b[SIZE][SIZE];
 static double c[SIZE][SIZE];
 
 
-#ifdef BLOCKED_MULT
 static double a1[SIZE / 2][SIZE];
 static double a2[SIZE / 2][SIZE];
 
 static double b1[SIZE][SIZE / 2];
 static double b2[SIZE][SIZE / 2];
-#endif
 
 // Initialize a matrix of size (SIZE * SIZE).
 // For simplicity, all values will be set to 1.0.
@@ -42,8 +37,7 @@ static void init_matrix(void)
 			a[x][y] = 1.0;
 			b[x][y] = 1.0;
 
-#ifdef BLOCKED_MULT
-			// a matrix
+			// a block-matrix
 			if (x < SIZE / 2)
 			{
 				a1[x][y] = 1.0;	
@@ -53,7 +47,7 @@ static void init_matrix(void)
 				a2[x - SIZE / 2] = 1.0;
 			}
 
-			// b matrix
+			// b block-matrix
 			if (y < SIZE / 2)
 			{
 				b1[x][y] = 1.0;
@@ -62,7 +56,6 @@ static void init_matrix(void)
 			{
 				b2[x][y - SIZE / 2] = 1.0;
 			}
-#endif
 		}
 	}
 }
