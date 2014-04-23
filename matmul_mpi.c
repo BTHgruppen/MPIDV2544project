@@ -19,14 +19,14 @@ static double a[SIZE][SIZE];
 static double b[SIZE][SIZE];
 static double c[SIZE][SIZE];
 
-
 static double a1[SIZE / 2][SIZE];
 static double a2[SIZE / 2][SIZE];
 
 static double b1[SIZE][SIZE / 2];
 static double b2[SIZE][SIZE / 2];
 
-static double cHalf[SIZE / 2][SIZE]
+static double cHalf[SIZE / 2][SIZE];
+static double cQuarter[SIZE / 2][SIZE / 2];
 
 // Initialize a matrix of size (SIZE * SIZE).
 // For simplicity, all values will be set to 1.0.
@@ -112,8 +112,63 @@ int main(int argc, char **argv)
 		if (nproc == 4)
 		{
 			// One block on master and one on each node
-			// TODO: Write code for nproc == 4
+
+			// Block 1 (1,1)
+			for (i = 0; i < HALF_SIZE; i++) // Row
+			{
+				for (j = 0; j < HALF_SIZE / 2; j++) // Element in row
+				{
+					c[i][j] = 0.0f;
+					for (k = 0; k < HALF_SIZE / 2; k++)
+					{
+						c[i][j] = c[i][j] + a1[i][k] * b1[k][j];
+					}
+				}
+			}
+
+			// Send matrix blocks 2 to node 2.
+			MPI_Send(&a1, HALF_SIZE * SIZE, MPI_DOUBLE, 1, FROM_MASTER, MPI_COMM_WORLD);
+			MPI_Send(&b2, HALF_SIZE * SIZE, MPI_DOUBLE, 1, FROM_MASTER, MPI_COMM_WORLD);
+
+			// Send matrix blocks 3 to node 3.
+			MPI_Send(&a2, HALF_SIZE * SIZE, MPI_DOUBLE, 2, FROM_MASTER, MPI_COMM_WORLD);
+			MPI_Send(&b1, HALF_SIZE * SIZE, MPI_DOUBLE, 2, FROM_MASTER, MPI_COMM_WORLD);
+
+			// Send matrix blocks 4 to node 4.
+			MPI_Send(&a2, HALF_SIZE * SIZE, MPI_DOUBLE, 2, FROM_MASTER, MPI_COMM_WORLD);
+			MPI_Send(&b2, HALF_SIZE * SIZE, MPI_DOUBLE, 2, FROM_MASTER, MPI_COMM_WORLD);
+
+			// Receive results from node 2.
+			MPI_Recv(&cQuarter, HALF_SIZE * SIZE, MPI_DOUBLE, 1, FROM_WORKER, MPI_COMM_WORLD, &status);
+			for (i = 0; i < HALF_SIZE; i++)
+			{
+				for (j = 0; j < HALF_SIZE; j++)
+				{
+					c[i + HALF_SIZE][j] = cQuarter[i][j];
+				}
+			}
+
+			// Receive results from node 3.
+			MPI_Recv(&cQuarter, HALF_SIZE * SIZE, MPI_DOUBLE, 2, FROM_WORKER, MPI_COMM_WORLD, &status);
+			for (i = 0; i < HALF_SIZE; i++)
+			{
+				for (j = 0; j < HALF_SIZE; j++)
+				{
+					c[i][j + HALF_SIZE] = cQuarter[i][j];
+				}
+			}
+
+			// Receive results from node 4.
+			MPI_Recv(&cQuarter, HALF_SIZE * SIZE, MPI_DOUBLE, 3, FROM_WORKER, MPI_COMM_WORLD, &status);
+			for (i = 0; i < HALF_SIZE; i++)
+			{
+				for (j = 0; j < HALF_SIZE; j++)
+				{
+					c[i + HALF_SIZE][j + HALF_SIZE] = cQuarter[i][j];
+				}
+			}
 		}
+
 		else if (nproc == 2)
 		{
 			// Two blocks on master, two blocks on node
@@ -136,7 +191,7 @@ int main(int argc, char **argv)
 			{
 				for (j = 0; j < HALF_SIZE / 2; j++)
 				{
-					c[i][j] = 0.0f;
+					c[i][j + HALF_SIZE] = 0.0f;
 					for (k = 0; k < HALF_SIZE / 2; k++)
 					{
 						c[i][j + HALF_SIZE] = c[i][j + HALF_SIZE] + a1[i][k] * b2[k][j];
@@ -149,7 +204,6 @@ int main(int argc, char **argv)
 			MPI_Send(&b1, HALF_SIZE * SIZE, MPI_DOUBLE, 1, FROM_MASTER, MPI_COMM_WORLD);
 			MPI_Send(&b2, HALF_SIZE * SIZE, MPI_DOUBLE, 1, FROM_MASTER, MPI_COMM_WORLD);
 			
-
 			// Receive result
 			MPI_Recv(&cHalf, HALF_SIZE * SIZE, MPI_DOUBLE, 1, FROM_WORKER, MPI_COMM_WORLD, &status);
 			
@@ -161,6 +215,7 @@ int main(int argc, char **argv)
 				}
 			}
 		}
+
 		else
 		{
 			// All blocks on master
@@ -270,7 +325,74 @@ int main(int argc, char **argv)
 		}
 		else if (nprocs == 4)
 		{
-			// TODO: Write code for nprocs == 4
+			// NODE 2.
+			if (myrank == 1)
+			{
+				MPI_Recv(&a1, HALF_SIZE * SIZE, MPI_DOUBLE, 0, FROM_MASTER, MPI_COMM_WORLD, &status);
+				MPI_Recv(&b2, HALF_SIZE * SIZE, MPI_DOUBLE, 0, FROM_MASTER, MPI_COMM_WORLD, &status);
+
+				// Block 2 (1,2)
+				for (i = 0; i < HALF_SIZE / 2; i++)
+				{
+					for (j = 0; j < HALF_SIZE / 2; j++)
+					{
+						cQuarter[i][j] = 0.0f;
+						for (k = 0; k < HALF_SIZE / 2; k++)
+						{
+							cQuarter[i][j] = cQuarter[i][j] + a1[i][k] * b2[k][j];
+						}
+					}
+				}
+
+				// Send node 2 results back.
+				MPI_Send(&cQuarter, HALF_SIZE * HALF_SIZE, MPI_DOUBLE, 0, FROM_WORKER, MPI_COMM_WORLD);
+			}
+
+			// NODE 3.
+			else if (myrank == 2)
+			{
+				MPI_Recv(&a2, HALF_SIZE * SIZE, MPI_DOUBLE, 0, FROM_MASTER, MPI_COMM_WORLD, &status);
+				MPI_Recv(&b1, HALF_SIZE * SIZE, MPI_DOUBLE, 0, FROM_MASTER, MPI_COMM_WORLD, &status);
+
+				// Block 3 (2,1)
+				for (i = 0; i < HALF_SIZE / 2; i++)
+				{
+					for (j = 0; j < HALF_SIZE / 2; j++)
+					{
+						cQuarter[i][j] = 0.0f;
+						for (k = 0; k < HALF_SIZE / 2; k++)
+						{
+							cQuarter[i][j] = cQuarter[i][j] + a2[i][k] * b1[k][j];
+						}
+					}
+				}
+
+				// Send node 3 results back.
+				MPI_Send(&cQuarter, HALF_SIZE * HALF_SIZE, MPI_DOUBLE, 0, FROM_WORKER, MPI_COMM_WORLD);
+			}
+
+			// NODE 4.
+			else if (myrank == 3)
+			{
+				MPI_Recv(&a2, HALF_SIZE * SIZE, MPI_DOUBLE, 0, FROM_MASTER, MPI_COMM_WORLD, &status);
+				MPI_Recv(&b2, HALF_SIZE * SIZE, MPI_DOUBLE, 0, FROM_MASTER, MPI_COMM_WORLD, &status);
+
+				// Block 4 (2,2)
+				for (i = 0; i < HALF_SIZE / 2; i++)
+				{
+					for (j = 0; j < HALF_SIZE / 2; j++)
+					{
+						cQuarter[i][j] = 0.0f;
+						for (k = 0; k < HALF_SIZE / 2; k++)
+						{
+							cQuarter[i][j] = cQuarter[i][j] + a2[i][k] * b2[k][j];
+						}
+					}
+				}
+
+				// Send node 4 results back.
+				MPI_Send(&cQuarter, HALF_SIZE * HALF_SIZE, MPI_DOUBLE, 0, FROM_WORKER, MPI_COMM_WORLD); 
+			}
 		}
     }
 
