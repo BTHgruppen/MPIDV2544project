@@ -11,7 +11,7 @@
 #define FROM_WORKER 2
 #define DEBUG 0	
 
-#define MAX_PROCESSORS 1;
+#define MAX_PROCESSORS 4;
 
 MPI_Status status;
 
@@ -32,9 +32,10 @@ static double cQuarter[SIZE / 2][SIZE / 2];
 // For simplicity, all values will be set to 1.0.
 static void init_matrix(void)
 {
-    for (int x = 0; x < SIZE; x++)
+	int x, y;
+    for (x = 0; x < SIZE; x++)
 	{
-        for (int y = 0; y < SIZE; y++) 
+        for (y = 0; y < SIZE; y++) 
 		{
 			a[x][y] = 1.0;
 			b[x][y] = 1.0;
@@ -46,7 +47,7 @@ static void init_matrix(void)
 			}
 			else
 			{
-				a2[x - SIZE / 2] = 1.0;
+				a2[x - (SIZE / 2)][y] = 1.0;
 			}
 
 			// b block-matrix
@@ -56,7 +57,7 @@ static void init_matrix(void)
 			}
 			else
 			{
-				b2[x][y - SIZE / 2] = 1.0;
+				b2[x][y - (SIZE / 2)] = 1.0;
 			}
 		}
 	}
@@ -65,9 +66,10 @@ static void init_matrix(void)
 // Function used to print the contents of matrix c.
 static void print_matrix(void)
 {
-    for (int x = 0; x < SIZE; x++) 
+	int x, y;
+    for (x = 0; x < SIZE; x++) 
 	{
-        for (int y = 0; y < SIZE; y++)
+        for (y = 0; y < SIZE; y++)
 		{
 			printf(" %7.2f", c[x][y]);
 		}
@@ -90,9 +92,10 @@ int main(int argc, char **argv)
 	MPI_Comm_size(MPI_COMM_WORLD, &availableProcs);
     MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
 
-	if (availableProcs > MAX_PROCESSORS)
+	int max_proc = MAX_PROCESSORS;
+	if (availableProcs > max_proc)
 	{
-		nproc = MAX_PROCESSORS;
+		nproc = max_proc;
 	}
 	else
 	{
@@ -281,14 +284,14 @@ int main(int argc, char **argv)
 			print_matrix();
 		}
 
-		int time_taken = (end_time - start_time);
+		double time_taken = (end_time - start_time);
 		printf("Execution time on %2d nodes: %f\n", nproc, time_taken);
     } 
 	
 	// Worker tasks.
-	else if(myrank < nprocs)
+	else if(myrank < nproc)
 	{
-		if (nprocs == 2)
+		if (nproc == 2)
 		{
 			MPI_Recv(&a2, HALF_SIZE * SIZE, MPI_DOUBLE, 0, FROM_MASTER, MPI_COMM_WORLD, &status);
 			MPI_Recv(&b1, HALF_SIZE * SIZE, MPI_DOUBLE, 0, FROM_MASTER, MPI_COMM_WORLD, &status);
@@ -323,7 +326,7 @@ int main(int argc, char **argv)
 			MPI_Send(&c, HALF_SIZE * SIZE, MPI_DOUBLE, 0, FROM_WORKER, MPI_COMM_WORLD); // Send result back
 
 		}
-		else if (nprocs == 4)
+		else if (nproc == 4)
 		{
 			// NODE 2.
 			if (myrank == 1)
