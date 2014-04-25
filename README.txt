@@ -9,5 +9,6 @@ Tasks:
 ==================================================
 --------------------------------------------------
 1. Blocked Matrix Multiplication.
-2. La Place Calculation.
+2. LaPlace Blocked Wavefront Aproximation.
+
 --------------------------------------------------
