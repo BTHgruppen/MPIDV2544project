@@ -6,7 +6,7 @@
 
 // SIZE is a multiple of the number of nodes, 
 // Hint: use small sizes when testing, e.g., SIZE 8
-#define SIZE 1024
+#define SIZE 8
 #define FROM_MASTER 1
 #define FROM_WORKER 2
 #define DEBUG 0	
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
 	{
 		// Initialization.
 		printf("SIZE = %d, number of nodes = %d\n", SIZE, availableProcs);
-		printf("%d node(s) will be used.", nproc);
+		printf("%d node(s) will be used.\n", nproc);
 
 		init_matrix();
 		start_time = MPI_Wtime();
@@ -147,7 +147,7 @@ int main(int argc, char **argv)
 			{
 				for (j = 0; j < HALF_SIZE; j++)
 				{
-					c[i + HALF_SIZE][j] = cQuarter[i][j];
+					c[i][j + HALF_SIZE] = cQuarter[i][j];
 				}
 			}
 
@@ -157,7 +157,7 @@ int main(int argc, char **argv)
 			{
 				for (j = 0; j < HALF_SIZE; j++)
 				{
-					c[i][j + HALF_SIZE] = cQuarter[i][j];
+					c[i + HALF_SIZE][j] = cQuarter[i][j];
 				}
 			}
 

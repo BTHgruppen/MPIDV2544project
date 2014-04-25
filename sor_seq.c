@@ -10,11 +10,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <malloc.h>
+#include <mpi.h>
 
 #define MAX_SIZE 4096
 #define EVEN_TURN 0 /* shall we calculate the 'red' or the 'black' elements */
 #define ODD_TURN  1
+
+MPI_Status status;
+
 
 typedef double matrix[MAX_SIZE+2][MAX_SIZE+2]; /* (+2) - boundary elements */
 
@@ -38,8 +41,14 @@ int Read_Options(int, char **);
 int 
 main(int argc, char **argv)
 {
-    int i, timestart, timeend, iter;
+	int i, timestart, timeend, iter, availableProcs, myRank;
+
+	MPI_Init(&argc, &argv);
+	MPI_Comm_size(MPI_COMM_WORLD, &availableProcs);
+	MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
  
+	printf("\n")
+
     glob = (struct globmem *) malloc(sizeof(struct globmem));
 
     Init_Default();		/* Init default values	*/
@@ -226,7 +235,7 @@ Print_Matrix()
 void 
 Init_Default()
 {
-    glob->N = 2048;
+    glob->N = 512;
     glob->difflimit = 0.00001*glob->N;
     glob->Init = "rand";
     glob->maxnum = 15.0;
