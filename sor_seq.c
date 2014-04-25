@@ -47,8 +47,6 @@ main(int argc, char **argv)
 	MPI_Comm_size(MPI_COMM_WORLD, &availableProcs);
 	MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
  
-	printf("\n")
-
     glob = (struct globmem *) malloc(sizeof(struct globmem));
 
     Init_Default();		/* Init default values	*/
@@ -235,7 +233,7 @@ Print_Matrix()
 void 
 Init_Default()
 {
-    glob->N = 512;
+    glob->N = 1024;
     glob->difflimit = 0.00001*glob->N;
     glob->Init = "rand";
     glob->maxnum = 15.0;
