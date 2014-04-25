@@ -6,12 +6,12 @@
 
 // SIZE is a multiple of the number of nodes, 
 // Hint: use small sizes when testing, e.g., SIZE 8
-#define SIZE 1024
+#define SIZE 2048
 #define FROM_MASTER 1
 #define FROM_WORKER 2
 #define DEBUG 0	
 
-#define MAX_PROCESSORS 2;
+#define MAX_PROCESSORS 1;
 
 MPI_Status status;
 
@@ -115,24 +115,18 @@ int main(int argc, char **argv)
 		if (nproc == 4)
 		{
 			// One block on master and one on each node
-			printf("Trying to send blocks to nodes...\n");
-
 			// Send matrix blocks 2 to node 2.
 			MPI_Send(&a1, HALF_SIZE * SIZE, MPI_DOUBLE, 1, FROM_MASTER, MPI_COMM_WORLD);
 			MPI_Send(&b2, HALF_SIZE * SIZE, MPI_DOUBLE, 1, FROM_MASTER, MPI_COMM_WORLD);
-			printf("Blocks sent to node 2\n");
 
 			// Send matrix blocks 3 to node 3.
 			MPI_Send(&a2, HALF_SIZE * SIZE, MPI_DOUBLE, 2, FROM_MASTER, MPI_COMM_WORLD);
 			MPI_Send(&b1, HALF_SIZE * SIZE, MPI_DOUBLE, 2, FROM_MASTER, MPI_COMM_WORLD);
-			printf("Blocks sent to node 3\n");
 
 			// Send matrix blocks 4 to node 4.
 			MPI_Send(&a2, HALF_SIZE * SIZE, MPI_DOUBLE, 3, FROM_MASTER, MPI_COMM_WORLD);
 			MPI_Send(&b2, HALF_SIZE * SIZE, MPI_DOUBLE, 3, FROM_MASTER, MPI_COMM_WORLD);
-			printf("Blocks sent to node 4\n");
 
-			printf("Trying to complete own work...\n");
 			// Block 1 (1,1)
 			for (i = 0; i < HALF_SIZE; i++) // Row
 			{
@@ -145,9 +139,7 @@ int main(int argc, char **argv)
 					}
 				}
 			}
-			printf("Own work completed.\n");
 
-			printf("Trying to recieve node work...\n");
 			// Receive results from node 2.
 			MPI_Recv(&cQuarter, HALF_SIZE * SIZE, MPI_DOUBLE, 1, FROM_WORKER, MPI_COMM_WORLD, &status);
 			for (i = 0; i < HALF_SIZE; i++)
@@ -157,7 +149,6 @@ int main(int argc, char **argv)
 					c[i][j + HALF_SIZE] = cQuarter[i][j];
 				}
 			}
-			printf("Node 2 work gathered and incorporated.\n");
 
 			// Receive results from node 3.
 			MPI_Recv(&cQuarter, HALF_SIZE * SIZE, MPI_DOUBLE, 2, FROM_WORKER, MPI_COMM_WORLD, &status);
@@ -168,7 +159,6 @@ int main(int argc, char **argv)
 					c[i + HALF_SIZE][j] = cQuarter[i][j];
 				}
 			}
-			printf("Node 3 work gathered and incorporated.\n");
 
 			// Receive results from node 4.
 			MPI_Recv(&cQuarter, HALF_SIZE * SIZE, MPI_DOUBLE, 3, FROM_WORKER, MPI_COMM_WORLD, &status);
@@ -179,7 +169,6 @@ int main(int argc, char **argv)
 					c[i + HALF_SIZE][j + HALF_SIZE] = cQuarter[i][j];
 				}
 			}
-			printf("Node 4 work gathered and incorporated.\n");
 		}
 
 		else if (nproc == 2)
