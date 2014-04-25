@@ -6,12 +6,12 @@
 
 // SIZE is a multiple of the number of nodes, 
 // Hint: use small sizes when testing, e.g., SIZE 8
-#define SIZE 2048
+#define SIZE 1024
 #define FROM_MASTER 1
 #define FROM_WORKER 2
-#define DEBUG 0	
+#define DEBUG 0
 
-#define MAX_PROCESSORS 1;
+#define MAX_PROCESSORS 4;
 
 MPI_Status status;
 
@@ -130,10 +130,10 @@ int main(int argc, char **argv)
 			// Block 1 (1,1)
 			for (i = 0; i < HALF_SIZE; i++) // Row
 			{
-				for (j = 0; j < HALF_SIZE / 2; j++) // Element in row
+				for (j = 0; j < HALF_SIZE; j++) // Element in row
 				{
 					c[i][j] = 0.0f;
-					for (k = 0; k < HALF_SIZE / 2; k++)
+					for (k = 0; k < SIZE; k++)
 					{
 						c[i][j] = c[i][j] + a1[i][k] * b1[k][j];
 					}
@@ -184,10 +184,10 @@ int main(int argc, char **argv)
 			// Block 1 (1,1)
 			for (i = 0; i < HALF_SIZE; i++) // Row
 			{
-				for (j = 0; j < HALF_SIZE / 2; j++) // Element in row
+				for (j = 0; j < HALF_SIZE; j++) // Element in row
 				{
 					c[i][j] = 0.0f;
-					for (k = 0; k < HALF_SIZE / 2; k++)
+					for (k = 0; k < SIZE; k++)
 					{
 						c[i][j] = c[i][j] + a1[i][k] * b1[k][j];
 					}
@@ -195,12 +195,12 @@ int main(int argc, char **argv)
 			}
 
 			// Block 2 (1,2)
-			for (i = 0; i < HALF_SIZE / 2; i++)
+			for (i = 0; i < HALF_SIZE; i++)
 			{
-				for (j = 0; j < HALF_SIZE / 2; j++)
+				for (j = 0; j < HALF_SIZE; j++)
 				{
 					c[i][j + HALF_SIZE] = 0.0f;
-					for (k = 0; k < HALF_SIZE / 2; k++)
+					for (k = 0; k < SIZE; k++)
 					{
 						c[i][j + HALF_SIZE] = c[i][j + HALF_SIZE] + a1[i][k] * b2[k][j];
 					}
@@ -227,10 +227,10 @@ int main(int argc, char **argv)
 			// Block 1 (1,1)
 			for (i = 0; i < HALF_SIZE; i++) // Row
 			{
-				for (j = 0; j < HALF_SIZE / 2; j++) // Element in row
+				for (j = 0; j < HALF_SIZE; j++) // Element in row
 				{
 					c[i][j] = 0.0f;
-					for (k = 0; k < HALF_SIZE / 2; k++)
+					for (k = 0; k < SIZE; k++)
 					{
 						c[i][j] = c[i][j] + a1[i][k] * b1[k][j];
 					}
@@ -238,12 +238,12 @@ int main(int argc, char **argv)
 			}
 
 			// Block 2 (1,2)
-			for (i = 0; i < HALF_SIZE / 2; i++)
+			for (i = 0; i < HALF_SIZE; i++)
 			{
-				for (j = 0; j < HALF_SIZE / 2; j++)
+				for (j = 0; j < HALF_SIZE; j++)
 				{
 					c[i][j + HALF_SIZE] = 0.0f;
-					for (k = 0; k < HALF_SIZE / 2; k++)
+					for (k = 0; k < SIZE; k++)
 					{
 						c[i][j + HALF_SIZE] = c[i][j + HALF_SIZE] + a1[i][k] * b2[k][j];
 					}
@@ -251,12 +251,12 @@ int main(int argc, char **argv)
 			}
 			
 			// Block 3 (2,1)
-			for (i = 0; i < HALF_SIZE / 2; i++)
+			for (i = 0; i < HALF_SIZE; i++)
 			{
-				for (j = 0; j < HALF_SIZE / 2; j++)
+				for (j = 0; j < HALF_SIZE; j++)
 				{
 					c[i + HALF_SIZE][j] = 0.0f;
-					for (k = 0; k < HALF_SIZE / 2; k++)
+					for (k = 0; k < SIZE; k++)
 					{
 						c[i + HALF_SIZE][j] = c[i + HALF_SIZE][j] + a2[i][k] * b1[k][j];
 					}
@@ -264,12 +264,12 @@ int main(int argc, char **argv)
 			}	
 			
 			// Block 4 (2,2)
-			for (i = 0; i < HALF_SIZE / 2; i++)
+			for (i = 0; i < HALF_SIZE; i++)
 			{
-				for (j = 0; j < HALF_SIZE / 2; j++)
+				for (j = 0; j < HALF_SIZE; j++)
 				{
 					c[i + HALF_SIZE][j + HALF_SIZE] = 0.0f;
-					for (k = 0; k < HALF_SIZE / 2; k++)
+					for (k = 0; k < SIZE; k++)
 					{
 						c[i + HALF_SIZE][j + HALF_SIZE] = c[i + HALF_SIZE][j + HALF_SIZE] + a2[i][k] * b2[k][j];
 					}
@@ -298,12 +298,12 @@ int main(int argc, char **argv)
 			MPI_Recv(&b2, HALF_SIZE * SIZE, MPI_DOUBLE, 0, FROM_MASTER, MPI_COMM_WORLD, &status);
 
 			// Block 3 (2,1)
-			for (i = 0; i < HALF_SIZE / 2; i++)
+			for (i = 0; i < HALF_SIZE; i++)
 			{
-				for (j = 0; j < HALF_SIZE / 2; j++)
+				for (j = 0; j < HALF_SIZE; j++)
 				{
 					c[i][j] = 0.0f;
-					for (k = 0; k < HALF_SIZE / 2; k++)
+					for (k = 0; k < SIZE; k++)
 					{
 						c[i][j] = c[i][j] + a2[i][k] * b1[k][j];
 					}
@@ -311,12 +311,12 @@ int main(int argc, char **argv)
 			}
 
 			// Block 4 (2,2)
-			for (i = 0; i < HALF_SIZE / 2; i++)
+			for (i = 0; i < HALF_SIZE; i++)
 			{
-				for (j = 0; j < HALF_SIZE / 2; j++)
+				for (j = 0; j < HALF_SIZE; j++)
 				{
 					c[i][j + HALF_SIZE] = 0.0f;
-					for (k = 0; k < HALF_SIZE / 2; k++)
+					for (k = 0; k < SIZE; k++)
 					{
 						c[i][j + HALF_SIZE] = c[i][j + HALF_SIZE] + a2[i][k] * b2[k][j];
 					}
@@ -335,12 +335,12 @@ int main(int argc, char **argv)
 				MPI_Recv(&b2, HALF_SIZE * SIZE, MPI_DOUBLE, 0, FROM_MASTER, MPI_COMM_WORLD, &status);
 
 				// Block 2 (1,2)
-				for (i = 0; i < HALF_SIZE / 2; i++)
+				for (i = 0; i < HALF_SIZE; i++)
 				{
-					for (j = 0; j < HALF_SIZE / 2; j++)
+					for (j = 0; j < HALF_SIZE; j++)
 					{
 						cQuarter[i][j] = 0.0f;
-						for (k = 0; k < HALF_SIZE / 2; k++)
+						for (k = 0; k < SIZE; k++)
 						{
 							cQuarter[i][j] = cQuarter[i][j] + a1[i][k] * b2[k][j];
 						}
@@ -358,12 +358,12 @@ int main(int argc, char **argv)
 				MPI_Recv(&b1, HALF_SIZE * SIZE, MPI_DOUBLE, 0, FROM_MASTER, MPI_COMM_WORLD, &status);
 
 				// Block 3 (2,1)
-				for (i = 0; i < HALF_SIZE / 2; i++)
+				for (i = 0; i < HALF_SIZE; i++)
 				{
-					for (j = 0; j < HALF_SIZE / 2; j++)
+					for (j = 0; j < HALF_SIZE; j++)
 					{
 						cQuarter[i][j] = 0.0f;
-						for (k = 0; k < HALF_SIZE / 2; k++)
+						for (k = 0; k < SIZE; k++)
 						{
 							cQuarter[i][j] = cQuarter[i][j] + a2[i][k] * b1[k][j];
 						}
@@ -381,12 +381,12 @@ int main(int argc, char **argv)
 				MPI_Recv(&b2, HALF_SIZE * SIZE, MPI_DOUBLE, 0, FROM_MASTER, MPI_COMM_WORLD, &status);
 
 				// Block 4 (2,2)
-				for (i = 0; i < HALF_SIZE / 2; i++)
+				for (i = 0; i < HALF_SIZE; i++)
 				{
-					for (j = 0; j < HALF_SIZE / 2; j++)
+					for (j = 0; j < HALF_SIZE; j++)
 					{
 						cQuarter[i][j] = 0.0f;
-						for (k = 0; k < HALF_SIZE / 2; k++)
+						for (k = 0; k < SIZE; k++)
 						{
 							cQuarter[i][j] = cQuarter[i][j] + a2[i][k] * b2[k][j];
 						}
