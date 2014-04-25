@@ -128,8 +128,8 @@ int main(int argc, char **argv)
 			printf("Blocks sent to node 3\n");
 
 			// Send matrix blocks 4 to node 4.
-			MPI_Send(&a2, HALF_SIZE * SIZE, MPI_DOUBLE, 2, FROM_MASTER, MPI_COMM_WORLD);
-			MPI_Send(&b2, HALF_SIZE * SIZE, MPI_DOUBLE, 2, FROM_MASTER, MPI_COMM_WORLD);
+			MPI_Send(&a2, HALF_SIZE * SIZE, MPI_DOUBLE, 3, FROM_MASTER, MPI_COMM_WORLD);
+			MPI_Send(&b2, HALF_SIZE * SIZE, MPI_DOUBLE, 3, FROM_MASTER, MPI_COMM_WORLD);
 			printf("Blocks sent to node 4\n");
 
 			printf("Trying to complete own work...\n");
