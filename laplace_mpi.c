@@ -1,3 +1,12 @@
+/* TODO
+2. Divide into blocks for 2 and 4 processors
+3. Send blocks to other nodes
+4. Each node calculates their block, row by row
+5. Exchange row values with adjacent blocks (Note: Use Sendreceive to avoid deadlock!)
+6. Check acceptance value, if we have not passed it yet, goto 4
+7. If we pass the acceptance value, add everything together into one matrix
+*/
+
 #include <stdio.h>
 #include <stdlib.h> 
 #include <mpi.h>
@@ -14,6 +23,8 @@
 
 static double A[SIZEWITHBORDERS][SIZEWITHBORDERS];
 
+MPI_Status status;
+
 void InitializeMatrix();
 void PrintMatrix();
 
@@ -22,14 +33,84 @@ int main(int argc, char **argv)
 	// Generate the matrix.
 	InitializeMatrix();
 
-	/* TODO
-	2. Divide into blocks
-	3. Send blocks to other nodes
-	4. Each node calculates their block, row by row
-	5. Exchange row values with adjacent blocks (Note: Use Sendreceive to avoid deadlock!)
-	6. Check acceptance value, if we have not passed it yet, goto 4
-	7. If we pass the acceptance value, add everything together into one matrix
-	*/
+	// Initialize MPI API.
+    MPI_Init(&argc, &argv);
+	MPI_Comm_rank(MPI_COMM_WORLD, &processorRank);
+	MPI_Comm_size(MPI_COMM_WORLD, &processorsAvailable);
+
+	// Ask for number of processors to be used.
+	int processorsUsed = 1;
+	printf("How many processors should be used in the cluster? [1, 2, 4]: ");
+	scanf("%d", &processorsUsed);
+
+	// Check input, if wrong, terminate program.
+	if(processorsUsed != 1 && processorsUsed != 2 && processorsUsed != 4)
+	{
+		cout >> "Wrong input used! Try again...";
+		return 0;
+	}
+    
+	// Master code.
+	if(processorRank == 0)
+	{
+		// 1 processor used, i.e. the master only.
+		if(processorsUsed == 1)
+		{
+
+		}
+
+		// 2 processors used, the master and one worker.
+		else if(processorsUsed == 2)
+		{
+
+		}
+
+		// 4 processors used, the master and all three waorkers.
+		else if(processorsUsed== 4)
+		{
+
+		}
+	}
+
+	// Worker code.
+	else if(processorRank < processorsUsed)
+	{
+		// 2 processors used, the master and one worker.
+		if(processorsUsed == 2)
+		{
+			// Worker 2 part.
+			if(processorRank == 1)
+			{
+
+			}
+		}
+
+		// 4 processors used, the master and all three workers.
+		else if(processorsUsed == 4)
+		{
+			// Worker 2 part.
+			if(processorRank == 1)
+			{
+
+			}
+
+			// Worker 3 part.
+			else if(processorRank == 2)
+			{
+
+			}
+
+			// Worker 4 part.
+			else if(processorRank == 3)
+			{
+
+			}
+		}
+	}
+
+	// Finalize the MPI API, and then quit.
+	MPI_Finalize();
+    return 0;
 }
 
 void InitializeMatrix()
