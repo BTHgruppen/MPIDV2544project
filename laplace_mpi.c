@@ -27,9 +27,12 @@ MPI_Status status;
 
 void InitializeMatrix();
 void PrintMatrix();
+int SequentialApproximation();
 
 int main(int argc, char **argv)
 {
+	int iterations = 0;
+
 	double startTime = 0; 
 	double endTime	 = 0;
 	double totalTime = 0;
@@ -50,7 +53,7 @@ int main(int argc, char **argv)
 	// Check input, if wrong, terminate program.
 	if(processorsUsed != 1 && processorsUsed != 2 && processorsUsed != 4)
 	{
-		cout >> "Wrong input used! Try again...\n";
+		printf("Wrong input used! Try again...\n");
 		return 0;
 	}
     
@@ -68,10 +71,16 @@ int main(int argc, char **argv)
 			printf("\n>> Running LaPlace approximation...\n\n");
 		}
 
-		// 1 processor used, the master does all the work.
+		// 1 processor used, the master does all the work (SEQUENTIAL).
 		if(processorsUsed == 1)
 		{
+			iterations = SequentialApproximation();
 
+			// If we reached to many iterations, quit.
+			if(iterations > 100000)
+			{
+				return 0;
+			}
 		}
 
 		// 2 processors used, the master and one worker.
@@ -89,9 +98,10 @@ int main(int argc, char **argv)
 		// Stop the timer.
 		endTime = MPI_Wtime();
 
+		printf("[SUCCESS] LaPlace approximation finished.\n");
+
 		if(DEBUG)
 		{
-			printf("LaPlace approxiamtion done!\n
 			printf("\n>> Printing matrix... \n\n");
 			PrintMatrix();
 		}
@@ -277,4 +287,132 @@ void PrintMatrix()
 	}
 
     printf("\n\n");
+}
+
+int SequentialApproximation()
+{
+	double previousMaximum_EVEN = 0.0, 
+	double previousMaximum_ODD	= 0.0, 
+	double maximum				= 0.0, 
+	double sum					= 0.0, 
+	double w					= 0.5;
+
+    int	m, n, i;
+    int turn = EVEN;
+    int iteration = 0;
+	int finished = 0;
+    
+	// Approximate until finished.
+    while(!finished) 
+	{
+		iteration++;
+
+		// Calculate even elements.
+		if(turn == EVEN) 
+		{
+			for(m = 1; m < SIZE + 1; m++) 
+			{
+				for(n = 1; n < SIZE + 1; n++) 
+				{
+					if(((m + n) % 2) == 0)
+					{
+						// Perform average operation, using the elements 4 neighbours.
+						A[m][n] = (1 - w) * A[m][n] + w * (A[m-1][n] + A[m+1][n] + A[m][n-1] + A[m][n+1]) / 4;
+					}
+				}
+			}
+
+			// Calculate the maximum sum of the elements.
+			maximum = -999999.0;
+			for(m = 1; m < SIZE + 1; m++) 
+			{
+				sum = 0.0;
+
+				for(n = 1; n < SISE + 1; n++)
+				{
+					sum += A[m][n];
+				}
+
+				if(sum > maximum)
+				{
+					maximum = sum;
+				}
+			}
+
+			// Check wether the approximation is finished or not, by comparing the even sum with the previous sum.
+			if(fabs(maximum - previousMaximum_EVEN) <= DIFFERANCELIMIT)
+			{
+				finished = 1;
+			}
+
+			// Print debug information if flaged.
+			if(DEBUG && (iteration % 100) == 0)
+			{
+				printf("Iteration: %d, maximum: %f, previous (even) maximum: %f\n", iteration, maximum, previousMaximum_EVEN);
+			}
+
+			// Prepare for next iteration.
+			previousMaximum_EVEN = maximum;
+			turn = ODD;
+		} 
+	
+		// Calculate odd elements.
+		else if(turn == ODD) 
+		{
+			for(m = 1; m < SIZE + 1; m++) 
+			{
+				for(n = 1; n < SIZE + 1; n++) 
+				{
+					if(((m + n) % 2) == 1)
+					{
+						// Perform average operation, using the elements 4 neighbours.
+						A[m][n] = (1 - w) * A[m][n] + w * (A[m-1][n] + A[m+1][n] + A[m][n-1] + A[m][n+1]) / 4;
+					}
+				}
+			}
+
+			// Calculate the maximum sum of the elements.
+			maximum = -999999.0;
+			for(m = 1; m < SIZE + 1; m++) 
+			{
+				sum = 0.0;
+
+				for(n = 1; n < SIZE + 1; n++)
+				{
+					sum += A[m][n];	
+				}
+
+				if(sum > maximum)	
+				{
+					maximum = sum;
+				}
+			}
+
+			// Check wether the approximation is finished or not, by comparing the odd sum with the previous sum.
+			if(fabs(maximum - previousMaximum_ODD) <= DIFFERANCELIMIT)
+			{
+				finished = 1;
+			}
+
+			// Print debug information if flaged.
+			if(DEBUG && (iteration%100) == 0)
+			{
+				printf("Iteration: %d, maximum: %f, previous (odd) maximum: %f\n", iteration, maximum, previousMaximum_ODD);
+			}
+
+			// Prepare for next iteration.
+			previousMaximum_ODD = maximum;
+			turn = EVEN;
+		} 
+
+		// Exit if the approximation does not converge fast enough.
+		if(iteration > 100000) 
+		{
+			printf("[FAILURE] Maximum number of iterations reached before convergance.\n");
+			printf("Change parameters and try again...\n");
+			finished = 1;
+		}
+    }
+
+    return iteration;
 }
