@@ -1,4 +1,4 @@
-/* TODO
+﻿/* TODO
 2. Divide into blocks for 2 and 4 processors
 3. Send blocks to other nodes
 4. Each node calculates their block, row by row
@@ -30,6 +30,10 @@ void PrintMatrix();
 
 int main(int argc, char **argv)
 {
+	double startTime = 0; 
+	double endTime	 = 0;
+	double totalTime = 0;
+
 	// Generate the matrix.
 	InitializeMatrix();
 
@@ -46,14 +50,25 @@ int main(int argc, char **argv)
 	// Check input, if wrong, terminate program.
 	if(processorsUsed != 1 && processorsUsed != 2 && processorsUsed != 4)
 	{
-		cout >> "Wrong input used! Try again...";
+		cout >> "Wrong input used! Try again...\n";
 		return 0;
 	}
     
-	// Master code.
+	// Start the timer.
+	startTime = MPI_Wtime();
+
+	//==================================================//
+	//          ▼ ▼ ▼ MASTERS CODE BLOCK ▼ ▼ ▼			//
+	//==================================================//
 	if(processorRank == 0)
 	{
-		// 1 processor used, i.e. the master only.
+		if(DEBUG)
+		{
+			printf("%d processors will be used.\n", processorsUsed);
+			printf("\n>> Running LaPlace approximation...\n\n");
+		}
+
+		// 1 processor used, the master does all the work.
 		if(processorsUsed == 1)
 		{
 
@@ -70,9 +85,28 @@ int main(int argc, char **argv)
 		{
 
 		}
-	}
 
-	// Worker code.
+		// Stop the timer.
+		endTime = MPI_Wtime();
+
+		if(DEBUG)
+		{
+			printf("LaPlace approxiamtion done!\n
+			printf("\n>> Printing matrix... \n\n");
+			PrintMatrix();
+		}
+
+		// Output time taken.
+		totalTime = (endTime - startTime);
+		printf("Execution time on %2d nodes: %f\n", processorsUsed, totalTime);
+	}
+	//==================================================//
+	//          ▲ ▲ ▲ MASTERS CODE BLOCK ▲ ▲ ▲			//
+	//==================================================//
+	
+	//==================================================//
+	//          ▼ ▼ ▼ WORKER CODE BLOCK ▼ ▼ ▼			//
+	//==================================================//
 	else if(processorRank < processorsUsed)
 	{
 		// 2 processors used, the master and one worker.
@@ -107,6 +141,9 @@ int main(int argc, char **argv)
 			}
 		}
 	}
+	//==================================================//
+	//          ▲ ▲ ▲ WORKER CODE BLOCK ▲ ▲ ▲			//
+	//==================================================//
 
 	// Finalize the MPI API, and then quit.
 	MPI_Finalize();
@@ -118,8 +155,6 @@ void InitializeMatrix()
 	// If we are in debug mode, print matrix definitions.
 	if(DEBUG)
 	{
-		printf("Number of processors to be used: %d\n", MAX_PROCESSORS);
-
 		printf("Matrix size (without borders): %d x %d\n", SIZE, SIZE);
 		printf("Matrix size (with borders): %d x %d\n", SIZEWITHBORDERS, SIZEWITHBORDERS);
 		printf("Differance limit: %.7lf\n", DIFFERANCELIMIT);
@@ -130,11 +165,13 @@ void InitializeMatrix()
 			printf("Maximum random value: %f\n", MAXRANDOM);
 		}
 
-		printf("Initializing matrix...");
+		printf("\n>> Initializing matrix...\n\n");
 	}
  
     // Initialize all matrix elements to 0.0.
-	int i, j;
+	int i;
+	int j;
+
     for (i = 0; i < SIZEWITHBORDERS; i++) 
 	{
 		for (j = 0; j < SIZEWITHBORDERS; j++) 
@@ -156,19 +193,19 @@ void InitializeMatrix()
     }
 
 	// Fill the matrix quickly.
-	int temp = 0;
+	int count = 0;
     if (FILLTYPE == "Quickly") 
 	{
 		for (i = 1; i < SIZE + 1; i++)
 		{
-			temp++;
+			count++;
 
 			for (j = 1; j < SIZE + 1; j++) 
 			{
-				temp++;
+				count++;
 
 				// Even elements.
-				if ((temp % 2) == 0)
+				if ((count % 2) == 0)
 				{
 					A[i][j] = 1.0;
 				}
@@ -217,14 +254,16 @@ void InitializeMatrix()
 	// If we are in debug mode, pring matrix.
 	if(DEBUG)
 	{
-		 printf("Initialization done! \nPrinting matrix: \n\n");
+		 printf("Initialization done!\n
+		 printf("\n>> Printing matrix... \n\n");
 		 PrintMatrix();
 	}
 }
 
 void PrintMatrix()
 {
-	int i, j;
+	int i;
+	int j;
 
 	// Iterate through the matrix and print it.
     for (i = 0; i < SIZEWITHBORDERS ;i++)
