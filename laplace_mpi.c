@@ -1,4 +1,5 @@
-﻿/* TODO
+﻿
+/* TODO
 2. Divide into blocks for 2 and 4 processors
 3. Send blocks to other nodes
 4. Each node calculates their block, row by row
@@ -20,6 +21,8 @@
 
 #define MAX_PROCESSORS 4
 #define DEBUG 0
+#define EVEN 0
+#define ODD 1
 
 static double A[SIZEWITHBORDERS][SIZEWITHBORDERS];
 
@@ -38,7 +41,6 @@ int main(int argc, char **argv)
 	double totalTime = 0;
 
 	int processorRank, processorsAvailable;
-	double startTime, endTime, totalTime;
 
 	// Generate the matrix.
 	InitializeMatrix();
@@ -91,7 +93,7 @@ int main(int argc, char **argv)
 		// 4 processors used, the master and all three workers.
 		else if(processorsUsed == 4)
 		{
-			iterations = BlockedApproximation(4);
+			iterations = MasterBlockedApproximation(4);
 		}
 
 		// Stop the timer.
@@ -263,9 +265,9 @@ void InitializeMatrix()
 	// If we are in debug mode, pring matrix.
 	if(DEBUG)
 	{
-		 printf("Initialization done!\n
-		 printf("\n>> Printing matrix... \n\n");
-		 PrintMatrix();
+		printf("Initialization done!\n");
+		printf("\n>> Printing matrix... \n\n");
+		PrintMatrix();
 	}
 }
 
@@ -290,11 +292,11 @@ void PrintMatrix()
 
 int SequentialApproximation()
 {
-	double previousMaximum_EVEN = 0.0, 
-	double previousMaximum_ODD	= 0.0, 
-	double maximum				= 0.0, 
-	double sum					= 0.0, 
-	double w					= 0.5;
+	double previousMaximum_EVEN = 0.0;
+	double previousMaximum_ODD = 0.0;
+	double maximum = 0.0;
+	double sum = 0.0;
+	double w = 0.5;
 
     int	m, n, i;
     int turn = EVEN;
@@ -327,7 +329,7 @@ int SequentialApproximation()
 			{
 				sum = 0.0;
 
-				for(n = 1; n < SISE + 1; n++)
+				for(n = 1; n < SIZE + 1; n++)
 				{
 					sum += A[m][n];
 				}
@@ -416,23 +418,30 @@ int SequentialApproximation()
     return iteration;
 }
 
-int BlockedApproximation(int nodes)
+int MasterBlockedApproximation(int nodes)
 {
 	if (nodes == 4)
 	{
-		iterations = BlockedApproximation(4);
-		// Create 4 blocks
+		// Create 4 blocks and fill them
 		int blocksize = SIZEWITHBORDERS / 2;
-		int** block11, block12, block21, block22;
-		block11 = (int**)malloc(sizeof(int)* blocksize * blocksize);
-		block12 = (int**)malloc(sizeof(int)* blocksize * blocksize);
-		block21 = (int**)malloc(sizeof(int)* blocksize * blocksize);
-		block22 = (int**)malloc(sizeof(int)* blocksize * blocksize);
+		int** block11;
+		int** block12;
+		int** block21;
+		int** block22;
 
-		// Fill blocks
+		block11 = (int**)malloc(sizeof(int*)* blocksize);
+		block12 = (int**)malloc(sizeof(int*)* blocksize);
+		block21 = (int**)malloc(sizeof(int*)* blocksize);
+		block22 = (int**)malloc(sizeof(int*)* blocksize);
+
 		int i, j;
 		for (i = 0; i < blocksize; i++)
 		{
+			block11[i] = malloc(sizeof(int)* blocksize);
+			block12[i] = malloc(sizeof(int)* blocksize);
+			block21[i] = malloc(sizeof(int)* blocksize);
+			block22[i] = malloc(sizeof(int)* blocksize);
+
 			for (j = 0; j < blocksize; j++)
 			{
 				block11[i][j] = A[i][j];
@@ -455,4 +464,9 @@ int BlockedApproximation(int nodes)
 		// Start looping calculation
 		// NOTE: Timer should start here, not before initialize
 	}
+}
+
+void WorkerBlockedApproximation()
+{
+	
 }
