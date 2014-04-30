@@ -11,15 +11,15 @@
 #include <stdlib.h> 
 #include <mpi.h>
 
-#define SIZE 1024;
-#define SIZEWITHBORDERS (SIZE + 2);
-#define DIFFERANCELIMIT (0.00001 * SIZE);
+#define SIZE 1024
+#define SIZEWITHBORDERS (SIZE + 2)
+#define DIFFERANCELIMIT (0.00001 * SIZE)
 
-#define FILLTYPE "Random";
-#define MAXRANDOM 15;
+#define FILLTYPE "Random"
+#define MAXRANDOM 15
 
-#define MAX_PROCESSORS 4;
-#define DEBUG 0;
+#define MAX_PROCESSORS 4
+#define DEBUG 0
 
 static double A[SIZEWITHBORDERS][SIZEWITHBORDERS];
 
