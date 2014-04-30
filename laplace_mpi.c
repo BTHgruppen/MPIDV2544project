@@ -47,16 +47,12 @@ int main(int argc, char **argv)
 	MPI_Comm_rank(MPI_COMM_WORLD, &processorRank);
 	MPI_Comm_size(MPI_COMM_WORLD, &processorsAvailable);
 
-	// Ask for number of processors to be used.
-	int processorsUsed = 1;
-	printf("How many processors should be used in the cluster? [1, 2, 4]: ");
-	scanf("%d", &processorsUsed);
-
-	// Check input, if wrong, terminate program.
-	if(processorsUsed != 1 && processorsUsed != 2 && processorsUsed != 4)
+	// Ask for number of processors to be used. Loop if input is invalid.
+	int processorsUsed = -1;
+	while (processorsUsed != 1 && processorsUsed != 2 && processorsUsed != 4)
 	{
-		printf("Wrong input used! Try again...\n");
-		return 0;
+		printf("How many processors should be used in the cluster? [1, 2, 4]: ");
+		scanf("%d", &processorsUsed);
 	}
     
 	// Start the timer.
