@@ -37,6 +37,8 @@ int main(int argc, char **argv)
 	double endTime	 = 0;
 	double totalTime = 0;
 
+	int processorRank, processorsAvailable;
+
 	// Generate the matrix.
 	InitializeMatrix();
 
