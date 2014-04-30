@@ -1,4 +1,4 @@
-﻿
+
 /* TODO
 2. Divide into blocks for 2 and 4 processors
 3. Send blocks to other nodes
@@ -12,7 +12,7 @@
 #include <stdlib.h> 
 #include <mpi.h>
 
-#define SIZE 1024
+#define SIZE 8
 #define SIZEWITHBORDERS (SIZE + 2)
 #define DIFFERANCELIMIT (0.00001 * SIZE)
 
@@ -20,7 +20,7 @@
 #define MAXRANDOM 15
 
 #define MAX_PROCESSORS 4
-#define DEBUG 0
+#define DEBUG 1
 #define EVEN 0
 #define ODD 1
 
@@ -51,18 +51,20 @@ int main(int argc, char **argv)
 	MPI_Comm_size(MPI_COMM_WORLD, &processorsAvailable);
 
 	// Ask for number of processors to be used. Loop if input is invalid.
-	int processorsUsed = -1;
+	int processorsUsed = 1;
+	/*
 	while (processorsUsed != 1 && processorsUsed != 2 && processorsUsed != 4)
 	{
 		printf("How many processors should be used in the cluster? [1, 2, 4]: ");
 		scanf("%d", &processorsUsed);
 	}
+	*/
     
 	// Start the timer.
 	startTime = MPI_Wtime();
 
 	//==================================================//
-	//          ▼ ▼ ▼ MASTERS CODE BLOCK ▼ ▼ ▼			//
+	//          V V V MASTERS CODE BLOCK V V V		//
 	//==================================================//
 	if(processorRank == 0)
 	{
@@ -112,11 +114,11 @@ int main(int argc, char **argv)
 		printf("Execution time on %2d nodes: %f\n", processorsUsed, totalTime);
 	}
 	//==================================================//
-	//          ▲ ▲ ▲ MASTERS CODE BLOCK ▲ ▲ ▲			//
+	//          ^ ^ ^ MASTERS CODE BLOCK ^ ^ ^ 		//
 	//==================================================//
 	
 	//==================================================//
-	//          ▼ ▼ ▼ WORKER CODE BLOCK ▼ ▼ ▼			//
+	//          V V V WORKER CODE BLOCK V V V			//
 	//==================================================//
 	else if(processorRank < processorsUsed)
 	{
@@ -153,7 +155,7 @@ int main(int argc, char **argv)
 		}
 	}
 	//==================================================//
-	//          ▲ ▲ ▲ WORKER CODE BLOCK ▲ ▲ ▲			//
+	//          ^ ^ ^  WORKER CODE BLOCK ^ ^ ^ 			//
 	//==================================================//
 
 	// Finalize the MPI API, and then quit.
