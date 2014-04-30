@@ -88,10 +88,42 @@ int main(int argc, char **argv)
 
 		}
 
-		// 4 processors used, the master and all three waorkers.
-		else if(processorsUsed== 4)
+		// 4 processors used, the master and all three workers.
+		else if(processorsUsed == 4)
 		{
+			// Create 4 blocks
+			int blocksize = SIZEWITHBORDERS / 2;
+			int** block11, block12, block21, block22;
+			block11 = (int**)malloc(sizeof(int) * blocksize * blocksize);
+			block12 = (int**)malloc(sizeof(int) * blocksize * blocksize);
+			block21 = (int**)malloc(sizeof(int) * blocksize * blocksize);
+			block22 = (int**)malloc(sizeof(int) * blocksize * blocksize);
 
+			// Fill blocks
+			int i, j;
+			for (i = 0; i < blocksize; i++)
+			{
+				for (j = 0; j < blocksize; j++)
+				{
+					block11[i][j] = A[i][j];
+					block12[i][j] = A[i][j + blocksize];
+					block21[i][j] = A[i + blocksize][j];
+					block22[i][j] = A[i + blocksize][j + blocksize];
+				}
+			}
+
+			// Send blocks
+			MPI_Send(block12, blocksize * blocksize, MPI_INT, 1, 0, MPI_COMM_WORLD);
+			MPI_Send(block21, blocksize * blocksize, MPI_INT, 2, 0, MPI_COMM_WORLD);
+			MPI_Send(block22, blocksize * blocksize, MPI_INT, 3, 0, MPI_COMM_WORLD);
+
+			// free memory
+			free(block12);
+			free(block21);
+			free(block22);
+
+			// Start looping calculation
+			// NOTE: Timer should start here, not before initialize
 		}
 
 		// Stop the timer.
