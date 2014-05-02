@@ -426,43 +426,53 @@ int MasterBlockedApproximation(int nodes)
 	if (nodes == 4)
 	{
 		// Create 4 blocks and fill them
-		int blocksize = SIZEWITHBORDERS / 2;
-		int** block11;
-		int** block12;
-		int** block21;
-		int** block22;
+		// The blocks will be one quarter of the original block with an extra border in x and y for data exchange 
+		int extendedblocksize = (SIZEWITHBORDERS / 2) + 1; 
 
-		block11 = (int**)malloc(sizeof(int*)* blocksize);
-		block12 = (int**)malloc(sizeof(int*)* blocksize);
-		block21 = (int**)malloc(sizeof(int*)* blocksize);
-		block22 = (int**)malloc(sizeof(int*)* blocksize);
-
+		int** myBlock;
 		int i, j;
+
+		// Block (1,1) for node 1
+		myBlock = malloc(sizeof(int*)* blocksize);
 		for (i = 0; i < blocksize; i++)
 		{
-			block11[i] = malloc(sizeof(int)* blocksize);
-			block12[i] = malloc(sizeof(int)* blocksize);
-			block21[i] = malloc(sizeof(int)* blocksize);
-			block22[i] = malloc(sizeof(int)* blocksize);
-
+			myBlock[i] = malloc(sizeof(int)* blocksize);
 			for (j = 0; j < blocksize; j++)
 			{
-				block11[i][j] = A[i][j];
-				block12[i][j] = A[i][j + blocksize];
-				block21[i][j] = A[i + blocksize][j];
-				block22[i][j] = A[i + blocksize][j + blocksize];
+				myBlock[i][j] = A[i][j];
 			}
 		}
-
-		// Send blocks
 		MPI_Send(block12, blocksize * blocksize, MPI_INT, 1, 0, MPI_COMM_WORLD);
-		MPI_Send(block21, blocksize * blocksize, MPI_INT, 2, 0, MPI_COMM_WORLD);
-		MPI_Send(block22, blocksize * blocksize, MPI_INT, 3, 0, MPI_COMM_WORLD);
 
-		// free memory
-		free(block12);
-		free(block21);
-		free(block22);
+		// Block (1,2) for node 2
+		for (i = 0; i < blocksize; i++)
+		{
+			// No need to realloc memory since same size is used
+			for (j = 0; j < blocksize; j++)
+			{
+				myBlock[i][j] = A[i][j + blocksize - 1];
+			}
+		}
+		MPI_Send(block12, blocksize * blocksize, MPI_INT, 2, 0, MPI_COMM_WORLD);
+
+		// Block (2,1) for node 3
+		for (i = 0; i < blocksize; i++)
+		{
+			for (j = 0; j < blocksize; j++)
+			{
+				myBlock[i][j] = A[i + blocksize - 1][j];
+			}
+		}
+		MPI_Send(block12, blocksize * blocksize, MPI_INT, 3, 0, MPI_COMM_WORLD);
+
+		// Block (2,2) for self/master
+		for (i = 0; i < blocksize; i++)
+		{
+			for (j = 0; j < blocksize; j++)
+			{
+				myBlock[i][j] = A[i + blocksize - 1][j + blocksize - 1];
+			}
+		}
 
 		// Start looping calculation
 		// NOTE: Timer should start here, not before initialize
