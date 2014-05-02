@@ -490,7 +490,7 @@ void WorkerBlockedApproximation()
 	}
 
 	// Receive initial block
-	int blocksize = SIZEWITHBORDERS / 2;
+	int blocksize = (SIZEWITHBORDERS / 2) + 1;
 	int** myBlock;
 
 	MPI_Recv(&myBlock, blocksize * blocksize, MPI_INT, 1, 0, MPI_COMM_WORLD, &status);
@@ -499,7 +499,140 @@ void WorkerBlockedApproximation()
 
 }
 
-void LaplaceOverBlock(int** block)
+void LaplaceOverBlock(int** block, int blocksize)
 {
+	double previousMaximum_EVEN = 0.0;
+	double previousMaximum_ODD = 0.0;
+	double maximum = 0.0;
+	double sum = 0.0;
+	double w = 0.5;
 
+	int	m, n, i;
+	int turn = EVEN;
+	int iteration = 0;
+	int finished = 0;
+
+	// Approximate until finished.
+	while (!finished)
+	{
+		iteration++;
+
+		// Calculate even elements.
+		if (turn == EVEN)
+		{
+			for (m = 1; m < blocksize - 1; m++)
+			{
+				for (n = 1; n < blocksize - 1; n++)
+				{
+					if (((m + n) % 2) == 0)
+					{
+						// Perform average operation, using the elements 4 neighbours.
+						block[m][n] = (1 - w) * block[m][n] + w * (block[m - 1][n] + block[m + 1][n] + block[m][n - 1] + block[m][n + 1]) / 4;
+					}
+				}
+			}
+
+			// Calculate the maximum sum of the elements.
+			maximum = -999999.0;
+			for (m = 1; m < blocksize - 1; m++)
+			{
+				sum = 0.0;
+
+				for (n = 1; n < blocksize - 1; n++)
+				{
+					sum += block[m][n];
+				}
+
+				if (sum > maximum)
+				{
+					maximum = sum;
+				}
+			}
+
+			// Check wether the approximation is finished or not, by comparing the even sum with the previous sum.
+			if (fabs(maximum - previousMaximum_EVEN) <= DIFFERANCELIMIT)
+			{
+				finished = 1;
+			}
+
+			// Print debug information if flaged.
+			if (DEBUG && (iteration % 100) == 0)
+			{
+				printf("Iteration: %d, maximum: %f, previous (even) maximum: %f\n", iteration, maximum, previousMaximum_EVEN);
+			}
+
+			// Prepare for next iteration.
+			previousMaximum_EVEN = maximum;
+			turn = ODD;
+		}
+
+		// Calculate odd elements.
+		else if (turn == ODD)
+		{
+			for (m = 1; m < blocksize - 1; m++)
+			{
+				for (n = 1; n < blocksize - 1; n++)
+				{
+					if (((m + n) % 2) == 1)
+					{
+						// Perform average operation, using the elements 4 neighbours.
+						block[m][n] = (1 - w) * block[m][n] + w * (block[m - 1][n] + block[m + 1][n] + block[m][n - 1] + block[m][n + 1]) / 4;
+					}
+				}
+			}
+
+			// Calculate the maximum sum of the elements.
+			maximum = -999999.0;
+			for (m = 1; m < blocksize - 1; m++)
+			{
+				sum = 0.0;
+
+				for (n = 1; n < blocksize - 1; n++)
+				{
+					sum += block[m][n];
+				}
+
+				if (sum > maximum)
+				{
+					maximum = sum;
+				}
+			}
+
+			// Check wether the approximation is finished or not, by comparing the odd sum with the previous sum.
+			if (fabs(maximum - previousMaximum_ODD) <= DIFFERANCELIMIT)
+			{
+				finished = 1;
+			}
+
+			// Print debug information if flaged.
+			if (DEBUG && (iteration % 100) == 0)
+			{
+				printf("Iteration: %d, maximum: %f, previous (odd) maximum: %f\n", iteration, maximum, previousMaximum_ODD);
+			}
+
+			// Prepare for next iteration.
+			previousMaximum_ODD = maximum;
+			turn = EVEN;
+		}
+
+		// Exit if the approximation does not converge fast enough.
+		if (iteration > 100000)
+		{
+			printf("[FAILURE] Maximum number of iterations reached before convergance.\n");
+			printf("Change parameters and try again...\n");
+			finished = 1;
+		}
+
+		// Sendreceive 
+
+		// Create the send and receive buffers
+		int* sendbuff = malloc(sizeof(int)* blocksize);
+		int* receivebuff = malloc(sizeof(int)* blocksize);
+
+		// Fill the send buffer
+		sendbuff = block[blocksize - 2];
+
+	}
+
+	return iteration;
 }
