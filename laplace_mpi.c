@@ -52,19 +52,19 @@ int main(int argc, char **argv)
 
 	// Ask for number of processors to be used. Loop if input is invalid.
 	int processorsUsed = 1;
-	/*
 	while (processorsUsed != 1 && processorsUsed != 2 && processorsUsed != 4)
 	{
+		fflush(stdin);
 		printf("How many processors should be used in the cluster? [1, 2, 4]: ");
 		scanf("%d", &processorsUsed);
 	}
-	*/
+	
     
 	// Start the timer.
 	startTime = MPI_Wtime();
 
 	//==================================================//
-	//          V V V MASTERS CODE BLOCK V V V		//
+	//          V V V MASTERS CODE BLOCK V V V			//
 	//==================================================//
 	if(processorRank == 0)
 	{
@@ -114,7 +114,7 @@ int main(int argc, char **argv)
 		printf("Execution time on %2d nodes: %f\n", processorsUsed, totalTime);
 	}
 	//==================================================//
-	//          ^ ^ ^ MASTERS CODE BLOCK ^ ^ ^ 		//
+	//          ^ ^ ^ MASTERS CODE BLOCK ^ ^ ^ 			//
 	//==================================================//
 	
 	//==================================================//
