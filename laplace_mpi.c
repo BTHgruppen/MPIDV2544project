@@ -25,6 +25,7 @@
 #define ODD 1
 
 static double A[SIZEWITHBORDERS][SIZEWITHBORDERS];
+int processorRank;
 
 MPI_Status status;
 
@@ -40,7 +41,7 @@ int main(int argc, char **argv)
 	double endTime	 = 0;
 	double totalTime = 0;
 
-	int processorRank, processorsAvailable;
+	int processorsAvailable;
 
 	// Generate the matrix.
 	InitializeMatrix();
@@ -465,10 +466,30 @@ int MasterBlockedApproximation(int nodes)
 
 		// Start looping calculation
 		// NOTE: Timer should start here, not before initialize
+
+
 	}
 }
 
 void WorkerBlockedApproximation()
 {
-	
+	if (processorRank == 0)
+	{
+		printf("Error: WorkerBlockedApproximation called on master node.");
+		exit(1);
+	}
+
+	// Receive initial block
+	int blocksize = SIZEWITHBORDERS / 2;
+	int** myBlock;
+
+	MPI_Recv(&myBlock, blocksize * blocksize, MPI_INT, 1, 0, MPI_COMM_WORLD, &status);
+	LaplaceOverBlock(block);
+
+
+}
+
+void LaplaceOverBlock(int** block)
+{
+
 }
