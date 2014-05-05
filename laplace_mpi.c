@@ -427,22 +427,21 @@ int MasterBlockedApproximation(int nodes)
 	{
 		// Create 4 blocks and fill them
 		// The blocks will be one quarter of the original block with an extra border in x and y for data exchange 
-		int extendedblocksize = (SIZEWITHBORDERS / 2) + 1; 
-
-		int** myBlock;
+		int blocksize = (SIZEWITHBORDERS / 2) + 1;
+		int blocksizeSquared = blocksize * blocksize;
+		int* myBlock;
 		int i, j;
 
 		// Block (1,1) for node 1
-		myBlock = malloc(sizeof(int*)* blocksize);
+		myBlock = malloc(sizeof(int)* blocksizeSquared);
 		for (i = 0; i < blocksize; i++)
 		{
-			myBlock[i] = malloc(sizeof(int)* blocksize);
 			for (j = 0; j < blocksize; j++)
 			{
-				myBlock[i][j] = A[i][j];
+				myBlock[i * blocksize + j] = A[i][j];
 			}
 		}
-		MPI_Send(block12, blocksize * blocksize, MPI_INT, 1, 0, MPI_COMM_WORLD);
+		MPI_Send(block12, blocksizeSquared, MPI_INT, 1, 0, MPI_COMM_WORLD);
 
 		// Block (1,2) for node 2
 		for (i = 0; i < blocksize; i++)
@@ -450,7 +449,7 @@ int MasterBlockedApproximation(int nodes)
 			// No need to realloc memory since same size is used
 			for (j = 0; j < blocksize; j++)
 			{
-				myBlock[i][j] = A[i][j + blocksize - 1];
+				myBlock[i * blocksize + j] = A[i][j + blocksize - 1];
 			}
 		}
 		MPI_Send(block12, blocksize * blocksize, MPI_INT, 2, 0, MPI_COMM_WORLD);
@@ -460,7 +459,7 @@ int MasterBlockedApproximation(int nodes)
 		{
 			for (j = 0; j < blocksize; j++)
 			{
-				myBlock[i][j] = A[i + blocksize - 1][j];
+				myBlock[i * blocksize + j] = A[i + blocksize - 1][j];
 			}
 		}
 		MPI_Send(block12, blocksize * blocksize, MPI_INT, 3, 0, MPI_COMM_WORLD);
@@ -470,7 +469,7 @@ int MasterBlockedApproximation(int nodes)
 		{
 			for (j = 0; j < blocksize; j++)
 			{
-				myBlock[i][j] = A[i + blocksize - 1][j + blocksize - 1];
+				myBlock[i * blocksize + j] = A[i + blocksize - 1][j + blocksize - 1];
 			}
 		}
 
