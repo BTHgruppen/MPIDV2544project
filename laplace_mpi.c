@@ -452,7 +452,7 @@ int MasterBlockedApproximation(int nodes)
 				myBlock[i * blocksize + j] = A[i][j + blocksize - 1];
 			}
 		}
-		MPI_Send(block12, blocksize * blocksize, MPI_INT, 2, 0, MPI_COMM_WORLD);
+		MPI_Send(block12, blocksizeSquared, MPI_INT, 2, 0, MPI_COMM_WORLD);
 
 		// Block (2,1) for node 3
 		for (i = 0; i < blocksize; i++)
@@ -462,7 +462,7 @@ int MasterBlockedApproximation(int nodes)
 				myBlock[i * blocksize + j] = A[i + blocksize - 1][j];
 			}
 		}
-		MPI_Send(block12, blocksize * blocksize, MPI_INT, 3, 0, MPI_COMM_WORLD);
+		MPI_Send(block12, blocksizeSquared, MPI_INT, 3, 0, MPI_COMM_WORLD);
 
 		// Block (2,2) for self/master
 		for (i = 0; i < blocksize; i++)
@@ -498,7 +498,7 @@ void WorkerBlockedApproximation()
 
 }
 
-void LaplaceOverBlock(int** block, int blocksize)
+void LaplaceOverBlock(int* block, int blocksize)
 {
 	double previousMaximum_EVEN = 0.0;
 	double previousMaximum_ODD = 0.0;
@@ -526,7 +526,7 @@ void LaplaceOverBlock(int** block, int blocksize)
 					if (((m + n) % 2) == 0)
 					{
 						// Perform average operation, using the elements 4 neighbours.
-						block[m][n] = (1 - w) * block[m][n] + w * (block[m - 1][n] + block[m + 1][n] + block[m][n - 1] + block[m][n + 1]) / 4;
+						block[m * blocksize + n] = (1 - w) * block[m * blocksize + n] + w * (block[(m - 1) * blocksize + n] + block[(m + 1)* blocksize + n] + block[m * blocksize + n - 1] + block[m * blocksize + n + 1]) / 4;
 					}
 				}
 			}
@@ -539,7 +539,7 @@ void LaplaceOverBlock(int** block, int blocksize)
 
 				for (n = 1; n < blocksize - 1; n++)
 				{
-					sum += block[m][n];
+					sum += block[m * blocksize + n];
 				}
 
 				if (sum > maximum)
@@ -575,7 +575,7 @@ void LaplaceOverBlock(int** block, int blocksize)
 					if (((m + n) % 2) == 1)
 					{
 						// Perform average operation, using the elements 4 neighbours.
-						block[m][n] = (1 - w) * block[m][n] + w * (block[m - 1][n] + block[m + 1][n] + block[m][n - 1] + block[m][n + 1]) / 4;
+						block[m * blocksize + n] = (1 - w) * block[m * blocksize + n] + w * (block[(m - 1) * blocksize + n] + block[(m + 1) * blocksize + n] + block[m * blocksize + n - 1] + block[m * blocksize + n + 1]) / 4;
 					}
 				}
 			}
@@ -588,7 +588,7 @@ void LaplaceOverBlock(int** block, int blocksize)
 
 				for (n = 1; n < blocksize - 1; n++)
 				{
-					sum += block[m][n];
+					sum += block[m * blocksize + n];
 				}
 
 				if (sum > maximum)
