@@ -60,10 +60,6 @@ int main(int argc, char **argv)
 		scanf("%d", &processorsUsed);
 	}
 	
-    
-	// Start the timer.
-	startTime = MPI_Wtime();
-
 	//==================================================//
 	//          V V V MASTERS CODE BLOCK V V V			//
 	//==================================================//
@@ -74,10 +70,16 @@ int main(int argc, char **argv)
 			printf("%d processors will be used.\n", processorsUsed);
 			printf("\n>> Running LaPlace approximation...\n\n");
 		}
+		  
+		// Start the timer.
+		startTime = MPI_Wtime();
 
 		// 1 processor used, the master does all the work (SEQUENTIAL).
 		if(processorsUsed == 1)
 		{
+			// Start the timer.
+			startTime = MPI_Wtime();
+
 			iterations = SequentialApproximation();
 
 			// If we reached to many iterations, quit.
@@ -90,7 +92,7 @@ int main(int argc, char **argv)
 		// 2 processors used, the master and one worker.
 		else if(processorsUsed == 2)
 		{
-
+			iterations = MasterBlockedApproximation(2);
 		}
 
 		// 4 processors used, the master and all three workers.
@@ -129,7 +131,7 @@ int main(int argc, char **argv)
 			// Worker 2 part.
 			if(processorRank == 1)
 			{
-
+				WorkerBlockedApproximation();
 			}
 		}
 
@@ -139,19 +141,19 @@ int main(int argc, char **argv)
 			// Worker 2 part.
 			if(processorRank == 1)
 			{
-
+				WorkerBlockedApproximation();
 			}
 
 			// Worker 3 part.
 			else if(processorRank == 2)
 			{
-
+				WorkerBlockedApproximation();
 			}
 
 			// Worker 4 part.
 			else if(processorRank == 3)
 			{
-
+				WorkerBlockedApproximation();
 			}
 		}
 	}
@@ -423,6 +425,11 @@ int SequentialApproximation()
 
 int MasterBlockedApproximation(int nodes)
 {
+	if (nodes == 2)
+	{
+		// Dont know if this needs to be done?
+	}
+
 	if (nodes == 4)
 	{
 		// Create 4 blocks and fill them
@@ -473,9 +480,10 @@ int MasterBlockedApproximation(int nodes)
 			}
 		}
 
-		// Start looping calculation
-		// NOTE: Timer should start here, not before initialize
+		// Start the timer.
+		startTime = MPI_Wtime();
 
+		// Start calculating.
 
 	}
 }
