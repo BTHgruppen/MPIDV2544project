@@ -492,18 +492,36 @@ void WorkerBlockedApproximation()
 {
 	if (processorRank == 0)
 	{
-		printf("Error: WorkerBlockedApproximation called on master node.");
+		printf("[ERROR] WorkerBlockedApproximation called on master node.");
 		exit(1);
 	}
 
-	// Receive initial block
-	int blocksize = (SIZEWITHBORDERS / 2) + 1;
 	int** myBlock;
 
-	MPI_Recv(&myBlock, blocksize * blocksize, MPI_INT, 1, 0, MPI_COMM_WORLD, &status);
-	LaplaceOverBlock(block);
+	// Work for the 1 remaining node.
+	if(processorsUsed == 2)
+	{
+		int blockSizeX = (SIZEWITHBORDERS / 2) + 1;
+		int blockSizeY = SIZEWITHBORDERS + 1;
 
+		// Receive initial block
+		MPI_Recv(&myBlock, blockSizeX * blockSizeY, MPI_INT, 1, 0, MPI_COMM_WORLD, &status);
 
+		// Perform LaPlace approximation.
+		//LaplaceOverBlock(myBlock, blockSizeX, blockSizeY); DOES NOT WORK, LaplaceOverBlock() written for rectangular blocks.
+	}
+
+	// Work for 3 nodes.
+	else if(processorsUsed == 4)
+	{
+		int blockSize = (SIZEWITHBORDERS / 2) + 1;
+
+		// Receive initial block
+		MPI_Recv(&myBlock, blockSize * blockSize, MPI_INT, 1, 0, MPI_COMM_WORLD, &status);
+
+		// Perform LaPlace approximation.
+		LaplaceOverBlock(myBlock, blockSize);
+	}
 }
 
 void LaplaceOverBlock(int* block, int blocksize)
