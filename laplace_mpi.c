@@ -623,15 +623,146 @@ void LaplaceOverBlock(int* block, int blocksize)
 		}
 
 		// Sendreceive 
+		switch (processorrank)
+		{
+			int* sendbuff;
+			int* receivebuff;
 
-		// Create the send and receive buffers
-		int* sendbuff = malloc(sizeof(int)* blocksize);
-		int* receivebuff = malloc(sizeof(int)* blocksize);
+		case 1: // (1,1)
+			// Exchange with node 2 (1,2)
+			// Copy the send buffer from the matrix block
+			sendbuff = malloc(sizeof(int)* blocksize);
+			for (i = 0; i < blocksize; i++)
+			{
+				sendbuff[i] = block[(i * blocksize) + blocksize - 2];
+			}
+			// Send and receive
+			receivebuff = malloc(sizeof(int)* blocksize);
+			MPI_Sendrecv(sendbuff, blocksize, MPI_INT, 2, 0, receivebuff, blocksize, MPI_INT, 2, 0, MPI_COMM_WORLD, &status);
+			
+			// Fill the received buffer into the matrix block
+			for (i = 0; i < blocksize; i++)
+			{
+				block[(i * blocksize) + blocksize - 1] = receivebuff[i];
+			}
+			free(sendbuff);
+			free(receivebuff);
 
-		// Fill the send buffer
-		sendbuff = block[blocksize - 2];
+			// Echange with node 3 (2,1)
+			// Point the send buffer to the right row in the matrix block
+			sendbuff = &(block[(blocksize - 2) * blocksize]);
+			// Point the receive buffer to the right row in the matrix block
+			receivebuff = &(block[(blocksize - 1) * blocksize]);
+			// Send and receive
+			MPI_Sendrecv(sendbuff, blocksize, MPI_INT, 3, 0, receivebuff, blocksize, MPI_INT, 3, 0, MPI_COMM_WORLD, &status);
 
+			// Set pointers to 0, just in case.
+			sendbuff = 0;
+			receivebuff = 0;
+			break;
+		case 2: // (1,2)
+			// Exchange with node 1 (1,1)
+			// Copy the send buffer from the matrix block
+			sendbuff = malloc(sizeof(int)* blocksize);
+			for (i = 0; i < blocksize; i++)
+			{
+				sendbuff[i] = block[(i * blocksize) + 1];
+			}
+			// Send and receive
+			receivebuff = malloc(sizeof(int)* blocksize);
+			MPI_Sendrecv(sendbuff, blocksize, MPI_INT, 1, 0, receivebuff, blocksize, MPI_INT, 1, 0, MPI_COMM_WORLD, &status);
+
+			// Fill the received buffer into the matrix block
+			for (i = 0; i < blocksize; i++)
+			{
+				block[(i * blocksize)] = receivebuff[i];
+			}
+			free(sendbuff);
+			free(receivebuff);
+
+			// Echange with node 0 (2,2)
+			// Point the send buffer to the right row in the matrix block
+			sendbuff = &(block[(blocksize - 2) * blocksize]);
+			// Point the receive buffer to the right row in the matrix block
+			receivebuff = &(block[(blocksize - 1) * blocksize]);
+			// Send and receive
+			MPI_Sendrecv(sendbuff, blocksize, MPI_INT, 0, 0, receivebuff, blocksize, MPI_INT, 0, 0, MPI_COMM_WORLD, &status);
+
+			// Set pointers to 0, just in case.
+			sendbuff = 0;
+			receivebuff = 0;
+			break;
+		case 3: // (2,1)
+			// Exchange with node 0 (2,2)
+			// Copy the send buffer from the matrix block
+			sendbuff = malloc(sizeof(int)* blocksize);
+			for (i = 0; i < blocksize; i++)
+			{
+				sendbuff[i] = block[(i * blocksize) + blocksize - 2];
+			}
+			// Send and receive
+			receivebuff = malloc(sizeof(int)* blocksize);
+			MPI_Sendrecv(sendbuff, blocksize, MPI_INT, 0, 0, receivebuff, blocksize, MPI_INT, 0, 0, MPI_COMM_WORLD, &status);
+
+			// Fill the received buffer into the matrix block
+			for (i = 0; i < blocksize; i++)
+			{
+				block[(i * blocksize) + blocksize - 1] = receivebuff[i];
+			}
+			free(sendbuff);
+			free(receivebuff);
+
+			// Echange with node 1 (1,1)
+			// Point the send buffer to the right row in the matrix block
+			sendbuff = &(block[blocksize]);
+			// Point the receive buffer to the right row in the matrix block
+			receivebuff = &(block[0]);
+			// Send and receive
+			MPI_Sendrecv(sendbuff, blocksize, MPI_INT, 1, 0, receivebuff, blocksize, MPI_INT, 1, 0, MPI_COMM_WORLD, &status);
+
+			// Set pointers to 0, just in case.
+			sendbuff = 0;
+			receivebuff = 0;
+			break;
+		case 0: // (2,2)
+			// Exchange with node 3 (2,1)
+			// Copy the send buffer from the matrix block
+			sendbuff = malloc(sizeof(int)* blocksize);
+			for (i = 0; i < blocksize; i++)
+			{
+				sendbuff[i] = block[(i * blocksize) + 1];
+			}
+			// Send and receive
+			receivebuff = malloc(sizeof(int)* blocksize);
+			MPI_Sendrecv(sendbuff, blocksize, MPI_INT, 3, 0, receivebuff, blocksize, MPI_INT, 3, 0, MPI_COMM_WORLD, &status);
+
+			// Fill the received buffer into the matrix block
+			for (i = 0; i < blocksize; i++)
+			{
+				block[(i * blocksize)] = receivebuff[i];
+			}
+			free(sendbuff);
+			free(receivebuff);
+
+			// Echange with node 2 (1,2)
+			// Point the send buffer to the right row in the matrix block
+			sendbuff = &(block[blocksize]);
+			// Point the receive buffer to the right row in the matrix block
+			receivebuff = &(block[0]);
+			// Send and receive
+			MPI_Sendrecv(sendbuff, blocksize, MPI_INT, 2, 0, receivebuff, blocksize, MPI_INT, 2, 0, MPI_COMM_WORLD, &status);
+
+			// Set pointers to 0, just in case.
+			sendbuff = 0;
+			receivebuff = 0;
+			break;
+		case default:
+			break;
+		}
 	}
+
+	// TODO:
+	// When each block is done, it should be sent back to the master.
 
 	return iteration;
 }
