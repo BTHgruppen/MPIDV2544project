@@ -8,7 +8,6 @@ MPI PROJECT
 Tasks:
 ==================================================
 --------------------------------------------------
-1. Blocked Matrix Multiplication.
-2. LaPlace Blocked Wavefront Aproximation.
+Notes on how to compile the files can be found in Notes.txt
 
 --------------------------------------------------

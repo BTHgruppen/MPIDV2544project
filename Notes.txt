@@ -1,0 +1,40 @@
+-------------------------
+MPI Blocked Matrix 
+-------------------------
+
+Size: 1024 x 1024 matrix
+
+Sequential Mat Mul: 67.85 seconds
+
+1 node Mat Mul: 65.49 seconds
+
+4 node Mat Mul: 16.84 seconds
+
+-------------------------
+
+
+-------------------------
+MPI LaPlace
+-------------------------
+
+Size: 1024 x 1024 matrix
+
+Sequential LaPlace: x seconds
+
+1 node LaPlace: x seconds
+
+4 node LaPlace: x seconds
+
+-------------------------
+
+
+-------------------------
+OMP Compile Commands
+-------------------------
+
+mpicc -o matmul matmul_mpi.c
+
+mpicc -o laplace laplace_mpi.c
+
+-------------------------
+
